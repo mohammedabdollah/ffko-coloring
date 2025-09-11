@@ -1,1 +1,84 @@
 
+
+<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Coloring — FFKO</title>
+<style>
+ body{margin:0;font-family:system-ui,Segoe UI,Tajawal,Arial}
+ header{position:sticky;top:0;background:#4f73ff;color:#fff;padding:12px 16px}
+ .wrap{max-width:1100px;margin:0 auto;padding:16px}
+ .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+ .card{background:#fff;border:1px solid #e7eaf3;border-radius:14px;overflow:hidden;box-shadow:0 6px 16px #0001}
+ img{width:100%;aspect-ratio:1/1;object-fit:cover;background:#eef2ff}
+ .meta{padding:8px 10px;color:#556;font-size:12px;display:flex;justify-content:space-between}
+ .overlay{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:10px}
+ .overlay.show{display:flex}
+ .viewer{background:#fff;border-radius:16px;max-width:96vw;box-shadow:0 30px 60px #0006}
+ .viewer img{max-width:96vw;max-height:82vh;display:block}
+ .bar{display:flex;gap:8px;justify-content:flex-end;padding:8px}
+ .btn{border:1px solid #e7eaf3;padding:8px 12px;border-radius:10px;cursor:pointer;background:#f8fbff}
+</style>
+<header><div class="wrap"><strong>صفحات تلوين — Coloring</strong></div></header>
+<main class="wrap">
+  <div style="margin:10px 0;display:flex;gap:10px;flex-wrap:wrap">
+    <select id="cat"></select>
+    <input id="q" placeholder="بحث بالاسم | Search…" style="padding:8px 10px;border-radius:10px;border:1px solid #e7eaf3;min-width:240px">
+  </div>
+  <div id="grid" class="grid"></div>
+</main>
+<div id="ov" class="overlay"><div class="viewer">
+  <div class="bar">
+    <a id="dl" class="btn" download>⬇️ تنزيل</a>
+    <button id="cl" class="btn">✖️ إغلاق</button>
+  </div>
+  <img id="big" alt="">
+</div></div>
+<script>
+const owner="mohammedabdollah", repo="ffko-coloring", basePath="docs/images";
+const api=(p)=>`https://api.github.com/repos/${owner}/${repo}/contents/${p}`;
+const raw=(p)=>`https://raw.githubusercontent.com/${owner}/${repo}/refs/heads/main/${p}`;
+
+const catSel=document.getElementById('cat'), q=document.getElementById('q'),
+      grid=document.getElementById('grid'), ov=document.getElementById('ov'),
+      big=document.getElementById('big'), dl=document.getElementById('dl'), cl=document.getElementById('cl');
+
+let CATS=[], ALL=[];
+
+async function getJSON(url){ const r=await fetch(url); if(!r.ok) throw new Error(url); return r.json(); }
+
+async function loadCats(){
+  const items=await getJSON(api(basePath));
+  CATS=items.filter(x=>x.type==="dir").map(x=>x.name).sort();
+  catSel.innerHTML=`<option value="">كل الفئات | All</option>`+CATS.map(c=>`<option>${c}</option>`).join("");
+}
+
+async function loadAll(){
+  ALL.length=0;
+  for(const c of CATS){
+    const files=await getJSON(api(`${basePath}/${c}`));
+    files.filter(f=>/\.png$|\.jpg$|\.jpeg$|\.webp$/i.test(f.name))
+         .forEach(f=>ALL.push({cat:c, name:f.name, src:raw(`${basePath}/${c}/${f.name}`)}));
+  }
+}
+
+function render(){
+  const sel=catSel.value, term=(q.value||"").toLowerCase();
+  const list=ALL.filter(x=>(!sel||x.cat===sel)&&(!term||x.name.toLowerCase().includes(term)));
+  grid.innerHTML="";
+  for (const it of list){
+    const card=document.createElement('div'); card.className="card";
+    card.innerHTML=`<img loading="lazy" src="${it.src}" alt="${it.name}"><div class="meta"><span>${it.cat}</span><span>…</span></div>`;
+    card.querySelector('img').onclick=()=>{ big.src=it.src; dl.href=it.src; ov.classList.add('show'); };
+    grid.appendChild(card);
+  }
+}
+
+async function boot(){
+  await loadCats(); await loadAll(); render();
+  catSel.onchange=render; q.oninput=render;
+  ov.onclick=(e)=>{ if(e.target===ov) ov.classList.remove('show'); };
+  cl.onclick=()=>ov.classList.remove('show');
+}
+boot();
+</script>
+</html>

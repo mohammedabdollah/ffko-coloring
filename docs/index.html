@@ -17,6 +17,10 @@
  .viewer img{max-width:96vw;max-height:82vh;display:block}
  .bar{display:flex;gap:8px;justify-content:flex-end;padding:8px}
  .btn{border:1px solid #e7eaf3;padding:8px 12px;border-radius:10px;cursor:pointer;background:#f8fbff}
+ .miniBtn{padding:6px 8px;border:1px solid #e6ecff;border-radius:10px;text-decoration:none;font-weight:700;background:#f7fbff;color:#103}
+.miniBtn:hover{background:#eef6ff}
+.badge{padding:4px 8px;background:#f0f6ff;border:1px solid var(--ring);border-radius:999px}
+
 </style>
 <header><div class="wrap"><strong>صفحات تلوين — Coloring</strong></div></header>
 <main class="wrap">
@@ -67,7 +71,15 @@ function render(){
   grid.innerHTML="";
   for (const it of list){
     const card=document.createElement('div'); card.className="card";
-    card.innerHTML=`<img loading="lazy" src="${it.src}" alt="${it.name}"><div class="meta"><span>${it.cat}</span><span>…</span></div>`;
+card.innerHTML = `
+  <img class="thumb" loading="lazy" src="${it.src}" alt="${it.name}">
+  <div class="meta">
+    <span class="badge">${it.cat}</span>
+    <div style="display:flex;gap:6px">
+      <a class="miniBtn" href="paint.html?src=${encodeURIComponent(it.src)}">🎨 تلوين</a>
+      <a class="miniBtn" href="${it.src}" download>⬇️ تنزيل</a>
+    </div>
+  </div>`;
     card.querySelector('img').onclick=()=>{ big.src=it.src; dl.href=it.src; ov.classList.add('show'); };
     grid.appendChild(card);
   }
@@ -80,49 +92,31 @@ async function boot(){
   cl.onclick=()=>ov.classList.remove('show');
 }
 boot();
- <script>
-/* Allow ?cat=animals to pre-filter */
+
 (function () {
   const p = new URLSearchParams(location.search);
-  const firstCat = p.get('cat');
-  const setCat = () => {
-    if (firstCat && CATS.includes(firstCat)) {
-      catSel.value = firstCat;
-      render();
-    }
-  };
-  // لو القائمة اتملت بعد boot
-  if (CATS.length) setCat(); else {
-    const iv = setInterval(()=>{ if (CATS.length) { setCat(); clearInterval(iv); } }, 200);
-  }
-})();
- (function () {
-  const p = new URLSearchParams(location.search);
-  const firstCat = (p.get('cat') || '').toLowerCase();
-  // انتظر تحميل القائمة ثم طبّق الفلتر
+  const firstCat = (p.get('cat')||'').toLowerCase();
+
   const iv = setInterval(() => {
     if (!window.CATS || !CATS.length) return;
     clearInterval(iv);
+
+    // لو في فئة صحيحة، اعرضها مباشرة
     if (firstCat && CATS.includes(firstCat)) {
       catSel.value = firstCat;
+      q.value = ""; // مش عايزين بحث للأطفال
     } else {
-      // لو الفئة غير موجودة، ارجع للكل
-      catSel.value = "";
+      catSel.value = ""; // الكل
     }
     render();
-  }, 150);
+   
+  }, 120);
 })();
- function render(){
-  const sel=catSel.value, term=(q.value||"").toLowerCase();
-  const list=ALL.filter(x=>(!sel||x.cat===sel)&&(!term||x.name.toLowerCase().includes(term)));
-  grid.innerHTML = list.length ? "" : "<div style='padding:20px;color:#666'>لا توجد صور لهذه الفئة حتى الآن.</div>";
-  ...
-}
 
-</script>
 
 </script>
  
 </html>
+
 
 

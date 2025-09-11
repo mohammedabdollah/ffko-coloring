@@ -105,7 +105,6 @@
     const owner="mohammedabdollah", repo="ffko-coloring", basePath="docs/images";
     const api=(p)=>`https://api.github.com/repos/${owner}/${repo}/contents/${p}`;
     const raw=(p)=>`https://raw.githubusercontent.com/${owner}/${repo}/refs/heads/main/${p}`;
-    const page = (p)=> `${location.origin}/${repo}/${p.replace(/^docs\//,'')}`;
 
     // ====== عناصر الواجهة ======
     const grid = document.getElementById('grid');
@@ -136,7 +135,7 @@
         const files = await getJSON(api(`${basePath}/${c}`));
         files
           .filter(f=>/\.(png|jpg|jpeg|webp|gif|bmp|svg)$/i.test(f.name))
-          .forEach(f=>ALL.push({cat:c, name:f.name, src: page(`${basePath}/${c}/${f.name}`)});
+          .forEach(f=>ALL.push({cat:c, name:f.name, src: raw(`${basePath}/${c}/${f.name}`)});
 
       }
       stat.textContent = `إجمالي الصور: ${ALL.length}`;
@@ -268,6 +267,7 @@
   </script>
 </body>
 </html>
+
 
 
 

@@ -135,8 +135,7 @@
         const files = await getJSON(api(`${basePath}/${c}`));
         files
           .filter(f=>/\.(png|jpg|jpeg|webp|gif|bmp|svg)$/i.test(f.name))
-          .forEach(f=>ALL.push({cat:c, name:f.name, src: raw(`${basePath}/${c}/${f.name}`)});
-
+          .forEach(f=>ALL.push({cat:c, name:f.name, src: raw(`${basePath}/${c}/${f.name}`)}));
       }
       stat.textContent = `إجمالي الصور: ${ALL.length}`;
     }
@@ -157,8 +156,6 @@
             <div class="miniBtns">
               <button class="miniBtn" data-src="${it.src}" data-name="${it.name}" onclick="openPainter(this)">🎨 تلوين</button>
               <a class="miniBtn" href="${it.src}" download>⬇️ تنزيل</a>
-
-                <button class="miniBtn" onclick="downloadImage('${it.src}','${it.name}')">⬇️ تنزيل</button>
             </div>
           </div>`;
         grid.appendChild(card);
@@ -263,12 +260,6 @@
     pClose.onclick = closePaint;
     paintOverlay.addEventListener('click', (e)=>{ if(e.target===paintOverlay) closePaint(); });
     document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closePaint(); });
-   
   </script>
 </body>
 </html>
-
-
-
-
-

@@ -96,8 +96,33 @@ boot();
     const iv = setInterval(()=>{ if (CATS.length) { setCat(); clearInterval(iv); } }, 200);
   }
 })();
+ (function () {
+  const p = new URLSearchParams(location.search);
+  const firstCat = (p.get('cat') || '').toLowerCase();
+  // انتظر تحميل القائمة ثم طبّق الفلتر
+  const iv = setInterval(() => {
+    if (!window.CATS || !CATS.length) return;
+    clearInterval(iv);
+    if (firstCat && CATS.includes(firstCat)) {
+      catSel.value = firstCat;
+    } else {
+      // لو الفئة غير موجودة، ارجع للكل
+      catSel.value = "";
+    }
+    render();
+  }, 150);
+})();
+ function render(){
+  const sel=catSel.value, term=(q.value||"").toLowerCase();
+  const list=ALL.filter(x=>(!sel||x.cat===sel)&&(!term||x.name.toLowerCase().includes(term)));
+  grid.innerHTML = list.length ? "" : "<div style='padding:20px;color:#666'>لا توجد صور لهذه الفئة حتى الآن.</div>";
+  ...
+}
+
 </script>
 
 </script>
+ 
 </html>
+
 

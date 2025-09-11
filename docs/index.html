@@ -80,5 +80,24 @@ async function boot(){
   cl.onclick=()=>ov.classList.remove('show');
 }
 boot();
+ <script>
+/* Allow ?cat=animals to pre-filter */
+(function () {
+  const p = new URLSearchParams(location.search);
+  const firstCat = p.get('cat');
+  const setCat = () => {
+    if (firstCat && CATS.includes(firstCat)) {
+      catSel.value = firstCat;
+      render();
+    }
+  };
+  // لو القائمة اتملت بعد boot
+  if (CATS.length) setCat(); else {
+    const iv = setInterval(()=>{ if (CATS.length) { setCat(); clearInterval(iv); } }, 200);
+  }
+})();
+</script>
+
 </script>
 </html>
+

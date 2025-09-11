@@ -264,30 +264,11 @@
     pClose.onclick = closePaint;
     paintOverlay.addEventListener('click', (e)=>{ if(e.target===paintOverlay) closePaint(); });
     document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closePaint(); });
-    function downloadImage(url, filename) {
-  fetch(url)
-    .then(r => {
-      if(!r.ok) throw new Error(r.status);
-      return r.blob();
-    })
-    .then(blob => {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = filename || 'image.png';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(()=>URL.revokeObjectURL(a.href), 1500);
-    })
-    .catch(() => {
-      // فfallback لو Browser منع التحميل: افتح في تبويب
-      window.open(url, '_blank');
-    });
-}
-
+   
   </script>
 </body>
 </html>
+
 
 
 

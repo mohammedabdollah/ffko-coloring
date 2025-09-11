@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>صفحات تلوين للأطفال | Coloring Gallery</title>
-  <meta name="description" content="مكتبة تلوين قابلة للطباعة والتنزيل للأطفال — فلاتر حسب الفئة، بحث، وتلوين أونلاين داخل الصفحة.">
+  <meta name="description" content="مكتبة تلوين قابلة للطباعة والتنزيل للأطفال — فلاتر حسب الفئة وبحث، مع تلوين أونلاين داخل الصفحة.">
   <link rel="canonical" href="https://mohammedabdollah.github.io/ffko-coloring/">
   <meta property="og:type" content="website">
   <meta property="og:title" content="صفحات تلوين للأطفال | Coloring Gallery">
@@ -16,6 +16,7 @@
     }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Tajawal,Arial,sans-serif}
+
     header{position:sticky;top:0;z-index:10;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:18px 12px;box-shadow:0 8px 24px #0002}
     .wrap{max-width:1200px;margin:0 auto;padding:12px}
     h1{
@@ -27,13 +28,15 @@
     }
     h1:hover{ filter:brightness(1.07); text-shadow:0 1px 0 #fff, 0 4px 12px #0003, 0 0 2px #000c; }
     .sub{margin-top:6px;text-align:center;opacity:.95;font-weight:600}
+
     .toolbar{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:14px 0}
-    .input, .btn{
+    .input,.btn{
       padding:10px 12px;border-radius:12px;border:1px solid var(--ring);background:#fff;
-      box-shadow:0 6px 16px #0001;font-weight:700;cursor:pointer
+      box-shadow:0 6px 16px #0001;font-weight:700
     }
-    .input{cursor:text}
-    .btn{background:#f7fbff}
+    .input{min-width:240px}
+    .btn{background:#f7fbff;cursor:pointer}
+
     .tabs{display:flex;gap:8px;justify-content:center;margin:6px 0 2px}
     .grid{display:grid;gap:14px;margin:16px auto;grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
     .card{background:var(--card);border-radius:18px;overflow:hidden;border:1px solid var(--ring);box-shadow:0 10px 24px #0001}
@@ -41,7 +44,7 @@
     .meta{padding:8px 10px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
     .badge{padding:4px 8px;background:#f0f6ff;border:1px solid var(--ring);border-radius:999px;font-weight:800}
     .miniBtns{display:flex;gap:6px}
-    .miniBtn{padding:6px 8px;border:1px solid var(--ring);border-radius:10px;text-decoration:none;font-weight:800;background:#f7fbff;color:#103}
+    .miniBtn{padding:6px 8px;border:1px solid var(--ring);border-radius:10px;text-decoration:none;font-weight:800;background:#f7fbff;color:#103;cursor:pointer}
     .miniBtn:hover{background:#eef6ff}
     .empty{padding:24px;text-align:center;color:#666}
 
@@ -51,9 +54,212 @@
     .panel{width:min(1100px,98vw);background:#fff;border-radius:18px;border:1px solid var(--ring);box-shadow:0 30px 60px #0005;overflow:hidden}
     .panel-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:space-between;padding:8px 10px;border-bottom:1px solid var(--ring);background:#fbfdff}
     .panel-actions{display:flex;gap:8px;align-items:center}
-    .pick,.pbtn{padding:8px 10px;border:1px solid var(--ring);border-radius:10px;background:#f7fbff;font-weight:700}
+    .pick,.pbtn{padding:8px 10px;border:1px solid var(--ring);border-radius:10px;background:#f7fbff;font-weight:700;cursor:pointer}
     .panel-body{padding:10px;display:flex;justify-content:center;align-items:center;background:#fff}
     canvas{max-width:96vw;max-height:78vh;background:#fff;border:1px solid #e6eaf3;border-radius:12px;box-shadow:0 10px 24px #0001}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>صفحات تلوين للأطفال — Coloring</h1>
+      <div class="sub" id="stat">جارٍ التحميل…</div>
+      <div class="toolbar">
+        <select id="catSelect" class="input">
+          <option value="">كل الفئات | All Categories</option>
+        </select>
+        <input id="searchInput" class="input" placeholder="بحث بالاسم | Search by name…">
+        <button id="tabAll" class="btn">🗂️ كل الصور</button>
+        <button id="tabCat" class="btn">📁 هذه الفئة</button>
+      </div>
+    </div>
+  </header>
 
-    /* Category chips row (optional quick jump) */
-    .chips{max-width:1200px;margin:0 auto;padding:8px 12px
+  <main class="wrap">
+    <div id="grid" class="grid"></div>
+  </main>
+
+  <!-- Paint overlay -->
+  <div id="paintOverlay" class="overlay" aria-hidden="true">
+    <div class="panel" role="dialog" aria-modal="true">
+      <div class="panel-head">
+        <strong id="paintTitle">Coloring</strong>
+        <div class="panel-actions">
+          <input id="pColor" class="pick" type="color" value="#000000" title="لون الفرشاة">
+          <input id="pSize" class="pick" type="range" min="2" max="40" value="6" title="حجم الفرشاة">
+          <button id="pEraser" class="pbtn">🧽 ممحاة</button>
+          <button id="pClear" class="pbtn">🗑️ مسح</button>
+          <button id="pSave"  class="pbtn">⬇️ حفظ</button>
+          <button id="pPrint" class="pbtn">🖨️ طباعة</button>
+          <button id="pClose" class="pbtn">✖️ إغلاق</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <canvas id="pCanvas"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ====== إعدادات المستودع (لو غيرت الاسم/الحساب عدّل القيم) ======
+    const owner="mohammedabdollah", repo="ffko-coloring", basePath="docs/images";
+    const api=(p)=>`https://api.github.com/repos/${owner}/${repo}/contents/${p}`;
+    const raw=(p)=>`https://raw.githubusercontent.com/${owner}/${repo}/refs/heads/main/${p}`;
+
+    // ====== عناصر الواجهة ======
+    const grid = document.getElementById('grid');
+    const catSelect = document.getElementById('catSelect');
+    const searchInput = document.getElementById('searchInput');
+    const stat = document.getElementById('stat');
+    const tabAll = document.getElementById('tabAll');
+    const tabCat = document.getElementById('tabCat');
+
+    let CATS = [];
+    let ALL = []; // {cat,name,src}
+
+    async function getJSON(url){
+      const r = await fetch(url, {headers:{'Accept':'application/vnd.github+json'}});
+      if(!r.ok) throw new Error(`${r.status} ${url}`);
+      return r.json();
+    }
+
+    async function loadCats(){
+      const items = await getJSON(api(basePath));
+      CATS = items.filter(x=>x.type==="dir").map(x=>x.name).sort();
+      catSelect.innerHTML = `<option value="">كل الفئات | All Categories</option>` + CATS.map(c=>`<option value="${c}">${c}</option>`).join("");
+    }
+
+    async function loadAll(){
+      ALL.length = 0;
+      for(const c of CATS){
+        const files = await getJSON(api(`${basePath}/${c}`));
+        files
+          .filter(f=>/\.(png|jpg|jpeg|webp|gif|bmp|svg)$/i.test(f.name))
+          .forEach(f=>ALL.push({cat:c, name:f.name, src: raw(`${basePath}/${c}/${f.name}`)}));
+      }
+      stat.textContent = `إجمالي الصور: ${ALL.length}`;
+    }
+
+    function render(){
+      const c = catSelect.value;
+      const q = (searchInput.value||"").toLowerCase().trim();
+      const list = ALL.filter(it => (!c || it.cat===c) && (!q || it.name.toLowerCase().includes(q)));
+      grid.innerHTML = list.length ? "" : "<div class='empty'>لا توجد صور لهذه الفئة حتى الآن.</div>";
+
+      for(const it of list){
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <img class="thumb" loading="lazy" src="${it.src}" alt="${it.name}">
+          <div class="meta">
+            <span class="badge">${it.cat}</span>
+            <div class="miniBtns">
+              <button class="miniBtn" data-src="${it.src}" data-name="${it.name}" onclick="openPainter(this)">🎨 تلوين</button>
+              <a class="miniBtn" href="${it.src}" download>⬇️ تنزيل</a>
+            </div>
+          </div>`;
+        grid.appendChild(card);
+      }
+    }
+
+    // تبويب سريع
+    tabAll.onclick = ()=>{ catSelect.value=""; searchInput.value=""; render(); };
+    tabCat.onclick = ()=>{
+      const cat = new URLSearchParams(location.search).get('cat');
+      if (cat && CATS.includes(cat)) { catSelect.value = cat; searchInput.value=""; render(); }
+    };
+
+    // تحميل وفلترة أولية
+    (async function boot(){
+      try{
+        await loadCats();
+        await loadAll();
+        // فلترة من الرابط ?cat=
+        const p = new URLSearchParams(location.search);
+        const firstCat = (p.get('cat')||'').toLowerCase();
+        if(firstCat && CATS.includes(firstCat)){ catSelect.value = firstCat; }
+        render();
+      }catch(e){
+        stat.textContent = "تعذر التحميل.";
+        console.error(e);
+      }
+    })();
+
+    // تفاعلات
+    catSelect.addEventListener('change', render);
+    searchInput.addEventListener('input', render);
+
+    // ====== Painter (تلوين أونلاين داخل الصفحة) ======
+    const paintOverlay = document.getElementById('paintOverlay');
+    const pCanvas = document.getElementById('pCanvas');
+    const pCtx = pCanvas.getContext('2d');
+    const pColor = document.getElementById('pColor');
+    const pSize  = document.getElementById('pSize');
+    const pEraser= document.getElementById('pEraser');
+    const pClear = document.getElementById('pClear');
+    const pSave  = document.getElementById('pSave');
+    const pPrint = document.getElementById('pPrint');
+    const pClose = document.getElementById('pClose');
+    const paintTitle = document.getElementById('paintTitle');
+
+    let drawing=false, last=null, erase=false, baseImg=null;
+
+    window.openPainter = (btn) => {
+      const src  = btn.getAttribute('data-src');
+      const name = btn.getAttribute('data-name') || 'Coloring';
+      paintTitle.textContent = name;
+
+      baseImg = new Image();
+      baseImg.crossOrigin = "anonymous";
+      baseImg.onload = () => {
+        const maxW = 1200, scale = Math.min(1, maxW / baseImg.width);
+        pCanvas.width  = baseImg.width  * scale;
+        pCanvas.height = baseImg.height * scale;
+        pCtx.fillStyle = "#fff";
+        pCtx.fillRect(0,0,pCanvas.width,pCanvas.height);
+        pCtx.drawImage(baseImg, 0, 0, pCanvas.width, pCanvas.height);
+        paintOverlay.classList.add('show');
+        paintOverlay.setAttribute('aria-hidden','false');
+      };
+      baseImg.src = src;
+    };
+
+    function pos(e){
+      const r = pCanvas.getBoundingClientRect();
+      return {
+        x: (e.clientX - r.left) * pCanvas.width  / r.width,
+        y: (e.clientY - r.top ) * pCanvas.height / r.height
+      };
+    }
+    pCanvas.addEventListener('pointerdown',e=>{ drawing=true; last=pos(e); });
+    pCanvas.addEventListener('pointerup',  ()=>{ drawing=false; });
+    pCanvas.addEventListener('pointerleave',()=>{ drawing=false; });
+    pCanvas.addEventListener('pointermove',e=>{
+      if(!drawing) return;
+      const p2 = pos(e);
+      pCtx.lineCap='round'; pCtx.lineJoin='round'; pCtx.lineWidth=+pSize.value;
+      if(erase){ pCtx.globalCompositeOperation='destination-out'; pCtx.strokeStyle='rgba(0,0,0,1)'; }
+      else     { pCtx.globalCompositeOperation='source-over';      pCtx.strokeStyle=pColor.value; }
+      pCtx.beginPath(); pCtx.moveTo(last.x,last.y); pCtx.lineTo(p2.x,p2.y); pCtx.stroke();
+      last = p2;
+    });
+
+    pEraser.onclick = ()=>{ erase=!erase; pEraser.textContent = erase ? '✏️ رسم' : '🧽 ممحاة'; };
+    pClear.onclick  = ()=>{ 
+      pCtx.fillStyle="#fff"; pCtx.fillRect(0,0,pCanvas.width,pCanvas.height);
+      if(baseImg) pCtx.drawImage(baseImg,0,0,pCanvas.width,pCanvas.height);
+    };
+    pSave.onclick   = ()=>{
+      const a=document.createElement('a'); a.download='colored.png'; a.href=pCanvas.toDataURL('image/png'); a.click();
+    };
+    pPrint.onclick  = ()=>{
+      const w=window.open('','_blank'); w.document.write(`<img src="${pCanvas.toDataURL('image/png')}" style="max-width:100%">`);
+      w.document.close(); w.focus(); w.print();
+    };
+    function closePaint(){ paintOverlay.classList.remove('show'); paintOverlay.setAttribute('aria-hidden','true'); }
+    pClose.onclick = closePaint;
+    paintOverlay.addEventListener('click', (e)=>{ if(e.target===paintOverlay) closePaint(); });
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closePaint(); });
+  </script>
+</body>
+</html>

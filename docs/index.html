@@ -1,122 +1,59 @@
-
-
-<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Coloring — FFKO</title>
-<style>
- body{margin:0;font-family:system-ui,Segoe UI,Tajawal,Arial}
- header{position:sticky;top:0;background:#4f73ff;color:#fff;padding:12px 16px}
- .wrap{max-width:1100px;margin:0 auto;padding:16px}
- .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
- .card{background:#fff;border:1px solid #e7eaf3;border-radius:14px;overflow:hidden;box-shadow:0 6px 16px #0001}
- img{width:100%;aspect-ratio:1/1;object-fit:cover;background:#eef2ff}
- .meta{padding:8px 10px;color:#556;font-size:12px;display:flex;justify-content:space-between}
- .overlay{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:10px}
- .overlay.show{display:flex}
- .viewer{background:#fff;border-radius:16px;max-width:96vw;box-shadow:0 30px 60px #0006}
- .viewer img{max-width:96vw;max-height:82vh;display:block}
- .bar{display:flex;gap:8px;justify-content:flex-end;padding:8px}
- .btn{border:1px solid #e7eaf3;padding:8px 12px;border-radius:10px;cursor:pointer;background:#f8fbff}
- .miniBtn{padding:6px 8px;border:1px solid #e6ecff;border-radius:10px;text-decoration:none;font-weight:700;background:#f7fbff;color:#103}
-.miniBtn:hover{background:#eef6ff}
-.badge{padding:4px 8px;background:#f0f6ff;border:1px solid var(--ring);border-radius:999px}
-
-</style>
-<header><div class="wrap"><strong>صفحات تلوين — Coloring</strong></div></header>
-<main class="wrap">
-  <div style="margin:10px 0;display:flex;gap:10px;flex-wrap:wrap">
-    <select id="cat"></select>
-    <input id="q" placeholder="بحث بالاسم | Search…" style="padding:8px 10px;border-radius:10px;border:1px solid #e7eaf3;min-width:240px">
-  </div>
-  <div id="grid" class="grid"></div>
-</main>
-<div id="ov" class="overlay"><div class="viewer">
-  <div class="bar">
-    <a id="dl" class="btn" download>⬇️ تنزيل</a>
-    <button id="cl" class="btn">✖️ إغلاق</button>
-  </div>
-  <img id="big" alt="">
-</div></div>
-<script>
-const owner="mohammedabdollah", repo="ffko-coloring", basePath="docs/images";
-const api=(p)=>`https://api.github.com/repos/${owner}/${repo}/contents/${p}`;
-const raw=(p)=>`https://raw.githubusercontent.com/${owner}/${repo}/refs/heads/main/${p}`;
-
-const catSel=document.getElementById('cat'), q=document.getElementById('q'),
-      grid=document.getElementById('grid'), ov=document.getElementById('ov'),
-      big=document.getElementById('big'), dl=document.getElementById('dl'), cl=document.getElementById('cl');
-
-let CATS=[], ALL=[];
-
-async function getJSON(url){ const r=await fetch(url); if(!r.ok) throw new Error(url); return r.json(); }
-
-async function loadCats(){
-  const items=await getJSON(api(basePath));
-  CATS=items.filter(x=>x.type==="dir").map(x=>x.name).sort();
-  catSel.innerHTML=`<option value="">كل الفئات | All</option>`+CATS.map(c=>`<option>${c}</option>`).join("");
-}
-
-async function loadAll(){
-  ALL.length=0;
-  for(const c of CATS){
-    const files=await getJSON(api(`${basePath}/${c}`));
-    files.filter(f=>/\.png$|\.jpg$|\.jpeg$|\.webp$/i.test(f.name))
-         .forEach(f=>ALL.push({cat:c, name:f.name, src:raw(`${basePath}/${c}/${f.name}`)}));
-  }
-}
-
-function render(){
-  const sel=catSel.value, term=(q.value||"").toLowerCase();
-  const list=ALL.filter(x=>(!sel||x.cat===sel)&&(!term||x.name.toLowerCase().includes(term)));
-  grid.innerHTML="";
-  for (const it of list){
-    const card=document.createElement('div'); card.className="card";
-card.innerHTML = `
-  <img class="thumb" loading="lazy" src="${it.src}" alt="${it.name}">
-  <div class="meta">
-    <span class="badge">${it.cat}</span>
-    <div style="display:flex;gap:6px">
-      <a class="miniBtn" href="paint.html?src=${encodeURIComponent(it.src)}">🎨 تلوين</a>
-      <a class="miniBtn" href="${it.src}" download>⬇️ تنزيل</a>
-    </div>
-  </div>`;
-    card.querySelector('img').onclick=()=>{ big.src=it.src; dl.href=it.src; ov.classList.add('show'); };
-    grid.appendChild(card);
-  }
-}
-
-async function boot(){
-  await loadCats(); await loadAll(); render();
-  catSel.onchange=render; q.oninput=render;
-  ov.onclick=(e)=>{ if(e.target===ov) ov.classList.remove('show'); };
-  cl.onclick=()=>ov.classList.remove('show');
-}
-boot();
-
-(function () {
-  const p = new URLSearchParams(location.search);
-  const firstCat = (p.get('cat')||'').toLowerCase();
-
-  const iv = setInterval(() => {
-    if (!window.CATS || !CATS.length) return;
-    clearInterval(iv);
-
-    // لو في فئة صحيحة، اعرضها مباشرة
-    if (firstCat && CATS.includes(firstCat)) {
-      catSel.value = firstCat;
-      q.value = ""; // مش عايزين بحث للأطفال
-    } else {
-      catSel.value = ""; // الكل
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>صفحات تلوين للأطفال | Coloring Gallery</title>
+  <meta name="description" content="مكتبة تلوين قابلة للطباعة والتنزيل للأطفال — فلاتر حسب الفئة، بحث، وتلوين أونلاين داخل الصفحة.">
+  <link rel="canonical" href="https://mohammedabdollah.github.io/ffko-coloring/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="صفحات تلوين للأطفال | Coloring Gallery">
+  <meta property="og:description" content="اختر فئة، لوّن أونلاين أو نزّل للطباعة.">
+  <style>
+    :root{
+      --bg:#f7f8fb; --ink:#0f1320; --muted:#5b6075; --card:#fff; --ring:#e7ecf7;
+      --brand:#5a8dee; --brand2:#7dd3fc; --radius:22px;
     }
-    render();
-   
-  }, 120);
-})();
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Tajawal,Arial,sans-serif}
+    header{position:sticky;top:0;z-index:10;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:18px 12px;box-shadow:0 8px 24px #0002}
+    .wrap{max-width:1200px;margin:0 auto;padding:12px}
+    h1{
+      margin:0;text-align:center;font-size:clamp(24px,5vw,44px);font-weight:900;letter-spacing:.3px;
+      background:linear-gradient(180deg,#f7f7f7 0%, #d9d9d9 45%, #bfbfbf 55%, #ececec 100%);
+      -webkit-background-clip:text;background-clip:text;color:transparent;
+      text-shadow:0 1px 0 #ffffff80, 0 2px 6px #00000025, 0 0 1px #1118;
+      transition:filter .25s ease,text-shadow .25s ease;
+    }
+    h1:hover{ filter:brightness(1.07); text-shadow:0 1px 0 #fff, 0 4px 12px #0003, 0 0 2px #000c; }
+    .sub{margin-top:6px;text-align:center;opacity:.95;font-weight:600}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:14px 0}
+    .input, .btn{
+      padding:10px 12px;border-radius:12px;border:1px solid var(--ring);background:#fff;
+      box-shadow:0 6px 16px #0001;font-weight:700;cursor:pointer
+    }
+    .input{cursor:text}
+    .btn{background:#f7fbff}
+    .tabs{display:flex;gap:8px;justify-content:center;margin:6px 0 2px}
+    .grid{display:grid;gap:14px;margin:16px auto;grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+    .card{background:var(--card);border-radius:18px;overflow:hidden;border:1px solid var(--ring);box-shadow:0 10px 24px #0001}
+    .thumb{aspect-ratio:1/1;width:100%;object-fit:cover;display:block;background:#eef2ff}
+    .meta{padding:8px 10px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+    .badge{padding:4px 8px;background:#f0f6ff;border:1px solid var(--ring);border-radius:999px;font-weight:800}
+    .miniBtns{display:flex;gap:6px}
+    .miniBtn{padding:6px 8px;border:1px solid var(--ring);border-radius:10px;text-decoration:none;font-weight:800;background:#f7fbff;color:#103}
+    .miniBtn:hover{background:#eef6ff}
+    .empty{padding:24px;text-align:center;color:#666}
 
+    /* Painter modal */
+    .overlay{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:10px;z-index:50}
+    .overlay.show{display:flex}
+    .panel{width:min(1100px,98vw);background:#fff;border-radius:18px;border:1px solid var(--ring);box-shadow:0 30px 60px #0005;overflow:hidden}
+    .panel-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:space-between;padding:8px 10px;border-bottom:1px solid var(--ring);background:#fbfdff}
+    .panel-actions{display:flex;gap:8px;align-items:center}
+    .pick,.pbtn{padding:8px 10px;border:1px solid var(--ring);border-radius:10px;background:#f7fbff;font-weight:700}
+    .panel-body{padding:10px;display:flex;justify-content:center;align-items:center;background:#fff}
+    canvas{max-width:96vw;max-height:78vh;background:#fff;border:1px solid #e6eaf3;border-radius:12px;box-shadow:0 10px 24px #0001}
 
-</script>
- 
-</html>
-
-
-
+    /* Category chips row (optional quick jump) */
+    .chips{max-width:1200px;margin:0 auto;padding:8px 12px
